@@ -19,13 +19,17 @@ class Alamofire_SwiftyJSONTests: XCTestCase {
         let expectation = expectationWithDescription("\(URL)")
         
         Alamofire.request(.GET, URL, parameters: ["foo": "bar"])
-            .responseSwiftyJSON { (request, response, responseJSON, error) in
-                expectation.fulfill()
-                XCTAssertNotNil(request, "request should not be nil")
-                XCTAssertNotNil(response, "response should not be nil")
-                XCTAssertNil(error, "error should be nil")
-                XCTAssertEqual(responseJSON["args"], SwiftyJSON.JSON(["foo": "bar"] as NSDictionary), "args should be equal")
-        }
+                 .responseSwiftyJSON ({ (request, response, result) in
+                    expectation.fulfill()
+                    XCTAssertNotNil(request, "request should not be nil")
+                    XCTAssertNotNil(response, "response should not be nil")
+                    switch (result) {
+                    case .Success(let jsonResult):
+                        XCTAssertEqual(jsonResult["args"], SwiftyJSON.JSON(["foo": "bar"] as NSDictionary), "args should be equal")
+                    case .Failure(_, let error):
+                        XCTAssertNil(error, "error should be nil")
+                    }
+        })
         
         waitForExpectationsWithTimeout(10) { (error) in
             XCTAssertNil(error, "\(error)")
